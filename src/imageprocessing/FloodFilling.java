@@ -23,7 +23,7 @@ public class FloodFilling implements IImageProcessor {
 
 	@Override
 	public boolean isEnabled(int imageType) {
-		return imageType == Picsi.IMAGE_TYPE_GRAY;
+		return true;
 	}
 
 	@Override
@@ -59,7 +59,7 @@ public class FloodFilling implements IImageProcessor {
 			}
 		}
 
-		String format = "%-6s %-6s %-20s %-12s %-10s %-12s %-40s %-40s %-10s %-10s %-10s%n";
+		String format = "%-6s %-6s %-20s %-12s %-6s %-12s %-40s %-40s %-10s %-10s %-10s%n";
 		System.out.printf(format, "Label", "Area", "Centre of Gravity", "Eccentricity", "Perimeter", "Circularity",
 			"BoundingBox", "ConvexHull", "Convexity", "Density", "Diameter");
 
@@ -79,6 +79,7 @@ public class FloodFilling implements IImageProcessor {
 		queue.add(new Coordinate(startX, startY));
 
 		List<Coordinate> coordinates = new ArrayList<>();
+		Set<Coordinate> perimeter = new HashSet<>();
 		Coordinate mostRightPixel = new Coordinate(startX, startY);
 		Coordinate mostLeftPixel = new Coordinate(startX, startY);
 		Coordinate mostTopPixel = new Coordinate(startX, startY);
@@ -87,7 +88,6 @@ public class FloodFilling implements IImageProcessor {
 		int numberOfPixels = 0;
 		int sumXCoordinates = 0;
 		int sumYCoordinates = 0;
-		int perimeter = 0;
 
 		while(!queue.isEmpty()) {
 			numberOfPixels ++;
@@ -113,26 +113,42 @@ public class FloodFilling implements IImageProcessor {
 			Coordinate topCoordinate    = new Coordinate(coordinate.x(), coordinate.y() - 1);
 			Coordinate bottomCoordinate = new Coordinate(coordinate.x(), coordinate.y() + 1);
 
-			boolean isLeftMatch = isMatch(leftCoordinate, imageData);
-			boolean isRightMatch = isMatch(rightCoordinate, imageData);
-			boolean isTopMatch = isMatch(topCoordinate, imageData);
-			boolean isBottomMatch = isMatch(bottomCoordinate, imageData);
+			boolean isBoundary = false;
 
-			if(!visited.contains(leftCoordinate) && isLeftMatch) {
-				queue.add(leftCoordinate);
-			}
-			if(!visited.contains(rightCoordinate) && isRightMatch) {
-				queue.add(rightCoordinate);
-			}
-			if(!visited.contains(topCoordinate) && isTopMatch) {
-				queue.add(topCoordinate);
-			}
-			if(!visited.contains(bottomCoordinate) && isBottomMatch) {
-				queue.add(bottomCoordinate);
+			if (!visited.contains(leftCoordinate)) {
+				if (isMatch(leftCoordinate, imageData)) {
+					queue.add(leftCoordinate);
+				} else {
+					isBoundary = true;
+				}
 			}
 
-			if(!isLeftMatch || !isRightMatch || !isTopMatch || !isBottomMatch) {
-				perimeter ++;
+			if (!visited.contains(rightCoordinate)) {
+				if (isMatch(rightCoordinate, imageData)) {
+					queue.add(rightCoordinate);
+				} else {
+					isBoundary = true;
+				}
+			}
+
+			if (!visited.contains(topCoordinate)) {
+				if (isMatch(topCoordinate, imageData)) {
+					queue.add(topCoordinate);
+				} else {
+					isBoundary = true;
+				}
+			}
+
+			if (!visited.contains(bottomCoordinate)) {
+				if (isMatch(bottomCoordinate, imageData)) {
+					queue.add(bottomCoordinate);
+				} else {
+					isBoundary = true;
+				}
+			}
+
+			if (isBoundary) {
+				perimeter.add(coordinate);
 			}
 
 			visited.add(leftCoordinate);
@@ -145,7 +161,7 @@ public class FloodFilling implements IImageProcessor {
 		particleData.setBoundingBox(new BoundingBox(new Coordinate(mostLeftPixel.x, mostTopPixel.y), new Coordinate(mostRightPixel.x, mostBottomPixel.y)));
 		particleData.setCentreOfGravity(new Coordinate((double) sumXCoordinates / numberOfPixels, (double) sumYCoordinates / numberOfPixels));
 		particleData.setEccentricity(getEccentricity(coordinates, numberOfPixels, sumXCoordinates, sumYCoordinates));
-		particleData.setPerimeter(perimeter);
+		particleData.setPerimeter(perimeter.size());
 
 		return particleData;
 	}
@@ -257,7 +273,7 @@ public class FloodFilling implements IImageProcessor {
 			this.eccentricity = eccentricity;
 		}
 
-		public double getPerimeter() {
+		public int getPerimeter() {
 			return perimeter;
 		}
 
