@@ -1,7 +1,7 @@
 package gui;
 
 import imageprocessing.Binarization;
-import imageprocessing.FloodFilling;
+import imageprocessing.FloodFillingAndParticleAnalyzer;
 import imageprocessing.MorphologicFilter;
 import imageprocessing.colors.GrayscaleImage;
 import imageprocessing.transformation.AffineMapping;
@@ -43,7 +43,7 @@ public class ImageMenu extends UserMenu {
 		transformations.add("Rotation\tCtrl+6", 				SWT.CTRL | '6', new Rotation());
 		transformations.add("&Affine Abbildung", 				0, new AffineMapping());
 		transformations.add("Binarisierung", 0, new Binarization());
-		transformations.add("Flood Filling", 0, new FloodFilling());
+		transformations.add("Flood Filling", 0, new FloodFillingAndParticleAnalyzer());
 		transformations.add("Morphologic Filter", 0, new MorphologicFilter());
 		// TODO add here further image processing entries (they are inserted into the Image menu)
 	}
